@@ -88,7 +88,7 @@ def convert_row(data_row):
     # Camera data
     for i in range(1, 5):
         name = "Camera_sensor" + str(i)
-        sensor_data[name] = int(data_row[i + 10])
+        sensor_data[name] = int(eval(data_row[i + 10]))
 
     # Robot data
     for i in range(1, 3):
@@ -98,7 +98,7 @@ def convert_row(data_row):
     # Door sensor data
     for i in range(1, 12):
         name = "door_sensor" + str(i)
-        sensor_data[name] = int(data_row[i + 16])
+        sensor_data[name] = int(eval(data_row[i + 16]))
 
     # Time
     sensor_data['time'] = data_row[28]

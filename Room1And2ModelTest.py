@@ -10,8 +10,8 @@ state = initialize_state()
 
 def get_action(prob_factor, sensor_data, room_num):
     for name in ["robot1", "robot2"]:
-
-        if sensor_data[name][0] != "outside" and room_num == int(sensor_data[name][0][1:]):
+        if sensor_data[name][0] != "outside" and sensor_data[name][0][0] == 'r' \
+                and room_num == int(sensor_data[name][0][1:]):
             if sensor_data[name][1] == 0:
                 return 'off', 1, '0'
             elif sensor_data[name][1] == 1:
@@ -20,10 +20,16 @@ def get_action(prob_factor, sensor_data, room_num):
                 return 'on', 1, '>1'
 
     probs = [prob_factor['0'], prob_factor['1'], prob_factor['>1']]
+
     if max(probs) == prob_factor['0']:
-        return 'off', max(probs), '0'
+        if prob_factor['0'] > 4 * (prob_factor['1'] + prob_factor['>1']):
+            return 'off', max(probs), '0'
+        else:
+            return 'on', max(probs), '0'
+
     elif max(probs) == prob_factor['1']:
         return 'on', max(probs), '1'
+
     else:
         return 'on', max(probs), '>1'
 
@@ -77,7 +83,7 @@ def convert_file_row_to_sensor_data(data_row):
     # Camera data
     for i in range(1, 5):
         name = "Camera_sensor" + str(i)
-        sensor_data[name] = int(data_row[i + 10])
+        sensor_data[name] = int(eval(data_row[i + 10]))
 
     # Robot data
     for i in range(1, 3):
@@ -87,7 +93,7 @@ def convert_file_row_to_sensor_data(data_row):
     # Door sensor data
     for i in range(1, 12):
         name = "door_sensor" + str(i)
-        sensor_data[name] = int(data_row[i + 16])
+        sensor_data[name] = int(eval(data_row[i + 16]))
 
     # Time
     sensor_data['time'] = data_row[28]
@@ -100,13 +106,18 @@ def convert_file_row_to_sensor_data(data_row):
 
 join_tree, bayesian_network_graph = get_room_1_room_2_model("data1.csv")
 
-full_data_file = open("data1.csv", "r", encoding="utf-8")
+full_data_file = open("data2.csv", "r", encoding="utf-8")
 reader = csv.reader(full_data_file)
 
-non_empty_count = 0
-false_off_count = 0
-empty_count = 0
-false_on_count = 0
+room1_non_empty_count = 0
+room1_false_off_count = 0
+room1_empty_count = 0
+room1_false_on_count = 0
+
+room2_non_empty_count = 0
+room2_false_off_count = 0
+room2_empty_count = 0
+room2_false_on_count = 0
 
 num = 0
 for row in reader:
@@ -118,7 +129,7 @@ for row in reader:
             name = "R" + str(i) + "_t-1"
             converted_sensor_data[name] = state[name]
 
-        # Use all data from sensor and last room state as evidence
+        # Use all sensor data and last room states as evidence
         evidence = {}
         for key in converted_sensor_data:
             if key in bayesian_network_graph:
@@ -134,19 +145,34 @@ for row in reader:
         state["R1_t-1"] = current_state1
         state["R2_t-1"] = current_state2
 
+        if row[29] == '0':
+            room1_empty_count += 1
+            if action1 == "on":
+                room1_false_on_count += 1
+
+        if row[29] != '0':
+            room1_non_empty_count += 1
+            if action1 == "off":
+                room1_false_off_count += 1
+
         if row[30] == '0':
-            empty_count += 1
+            room2_empty_count += 1
             if action2 == "on":
-                false_on_count += 1
+                room2_false_on_count += 1
 
         if row[30] != '0':
-            non_empty_count += 1
+            room2_non_empty_count += 1
             if action2 == "off":
-                false_off_count += 1
+                room2_false_off_count += 1
 
         join_tree.reset()
 
     num += 1
 
-print("Empty room:", empty_count, ", Light on:", false_on_count)
-print("Non empty room:", non_empty_count, ", Light off:", false_off_count)
+print('Room 1:')
+print("Empty room:", room1_empty_count, ", Light on:", room1_false_on_count)
+print("Non empty room:", room1_non_empty_count, ", Light off:", room1_false_off_count)
+print()
+print('Room 2:')
+print("Empty room:", room2_empty_count, ", Light on:", room2_false_on_count)
+print("Non empty room:", room2_non_empty_count, ", Light off:", room2_false_off_count)
