@@ -98,7 +98,7 @@ def convert_file_row_to_sensor_data(data_row):
     return final_sensor_data
 
 
-join_tree = get_room_1_room_2_model("data1.csv")
+join_tree, bayesian_network_graph = get_room_1_room_2_model("data1.csv")
 
 full_data_file = open("data1.csv", "r", encoding="utf-8")
 reader = csv.reader(full_data_file)
@@ -118,9 +118,10 @@ for row in reader:
             name = "R" + str(i) + "_t-1"
             converted_sensor_data[name] = state[name]
 
+        # Use all data from sensor and last room state as evidence
         evidence = {}
         for key in converted_sensor_data:
-            if key in join_tree.graph:
+            if key in bayesian_network_graph:
                 evidence[key] = converted_sensor_data[key]
 
         join_tree.evidence(**evidence)
@@ -129,26 +130,18 @@ for row in reader:
         action1, prob1, current_state1 = get_action(join_tree.queryCluster('6', ('R1_t',)), converted_sensor_data, 1)
         action2, prob2, current_state2 = get_action(join_tree.queryCluster('1', ('R2_t',)), converted_sensor_data, 2)
 
+        # Update the state of each room
         state["R1_t-1"] = current_state1
         state["R2_t-1"] = current_state2
 
-        # print(action1, prob1, current_state1)
-        # print(action2, prob2, current_state2)
-
-#         # if action1 == "on":
-#         #     total_count += 1
-#         #
-#         #     if converted_data["R1_t"] == '0':
-#         #         error_count += 1
-
-        if row[29] == '0':
+        if row[30] == '0':
             empty_count += 1
-            if action1 == "on":
+            if action2 == "on":
                 false_on_count += 1
 
-        if row[29] != '0':
+        if row[30] != '0':
             non_empty_count += 1
-            if action1 == "off":
+            if action2 == "off":
                 false_off_count += 1
 
         join_tree.reset()

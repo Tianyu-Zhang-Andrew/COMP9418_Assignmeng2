@@ -65,4 +65,4 @@ def get_room_1_room_2_model(training_file):
     factor = learn_factor(training_file)
     jt = JoinTree(join_tree, C, S, outcomeSpace)
     jt.distribute_factors(factor.values())
-    return jt
+    return jt, bayesian_network
