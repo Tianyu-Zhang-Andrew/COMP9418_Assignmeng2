@@ -30,8 +30,9 @@ def estimateFactor(data, var_name, parent_names, outcomeSpace):
         parent_index = allEqualThisIndex(data, **parent_vars)
         for var_outcome in var_outcomes:
             var_index = (np.asarray(data[var_name]) == var_outcome)
-            f[tuple(list(parent_combination) + [var_outcome])] = (var_index & parent_index).sum() / parent_index.sum()
-
+            # f[tuple(list(parent_combination) + [var_outcome])] = (var_index & parent_index).sum() / parent_index.sum()
+            f[tuple(list(parent_combination) + [var_outcome])] = \
+                ((var_index & parent_index).sum() + 1) / (parent_index.sum() + len(outcomeSpace[var_name]) * 1)
     return f
 
 
@@ -75,7 +76,7 @@ class BayesNet:
 
         Returns a new NORMALIZED factor will all hidden variables eliminated as evidence set as in q_evi
         """
-        assert isinstance(q_vars, list) or sinstance(q_vars, tuple), "q_vars should be a list"
+        assert isinstance(q_vars, list) or isinstance(q_vars, tuple), "q_vars should be a list"
 
         f = self.joint()
 

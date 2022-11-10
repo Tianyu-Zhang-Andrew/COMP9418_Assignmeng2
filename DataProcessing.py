@@ -19,15 +19,12 @@ def initialize_state():
         else:
             initial_state[name] = '0'
 
+    initial_state['C3_t-1'] = '0'
+
     return initial_state
 
 
 state = initialize_state()
-
-
-def reset_state():
-    global state
-    state = initialize_state()
 
 
 # Convert door sensor data from numerical numbers to "odd"/"even"/"zero"
@@ -73,6 +70,8 @@ def convert_sensor_data(sensor_data):
         name = "R" + str(i) + "_t-1"
         sensor_data[name] = state[name]
 
+    sensor_data['C3_t-1'] = state['C3_t-1']
+
     return sensor_data
 
 
@@ -117,7 +116,13 @@ def convert_row(data_row):
     # Number of people in corridor
     for i in range(1, 4):
         name = "C" + str(i) + "_t"
-        sensor_data[name] = int(data_row[i + 38])
+
+        if int(data_row[i + 38]) == 0:
+            sensor_data[name] = '0'
+        elif int(data_row[i + 38]) == 1:
+            sensor_data[name] = '1'
+        else:
+            sensor_data[name] = '>1'
 
     # Number of people outside
     sensor_data['outside_t'] = int(data_row[42])
@@ -145,6 +150,9 @@ def convert_file(file_name):
             for i in range(1, 11):
                 state["R" + str(i) + "_t-1"] = converted_row["R" + str(i) + "_t"]
 
+            # Update the state of corridor 3
+            state["C3_t-1"] = converted_row["C3_t"]
+
         row_number += 1
 
     full_data_file.close()
@@ -152,3 +160,4 @@ def convert_file(file_name):
     return pd.DataFrame(data)
 
 
+# params = pd.read_csv(...)

@@ -1,21 +1,28 @@
 import csv
 
-# full_data_file = open("data1.csv", "r", encoding="utf-8")
-# reader = csv.reader(full_data_file)
-#
-# global titles
-#
-# row_number = 0
-# data = []
-# for row in reader:
-#     if row_number > 0:
-#         data.append(row)
-#     else:
-#         titles = row
-#
-#     row_number += 1
-#
-# full_data_file.close()
+full_data_file = open("data2.csv", "r", encoding="utf-8")
+reader = csv.reader(full_data_file)
+
+global titles
+
+row_number = 0
+data = []
+count = 0
+for row in reader:
+    if row_number > 0:
+        data.append(row)
+
+        if eval(row[17]) % 2 != 0 and eval(row[26]) % 2 != 0:
+            count += 1
+
+    else:
+        titles = row
+
+    row_number += 1
+
+full_data_file.close()
+
+print(count)
 
 # count = 0
 # for row in data:
@@ -110,10 +117,3 @@ import csv
 #
 # for key in motion_sensor_dict:
 #     print(key, motion_sensor_dict[key])
-
-def evidence(**q_evi):
-    print(type(q_evi))
-
-
-d = dict({'a': 1})
-evidence(**d)
