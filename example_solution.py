@@ -134,6 +134,7 @@ def generate_evidence(converted_sensor_data, bayesian_network):
     converted_sensor_data['C3_t-1'] = state['C3_t-1']
 
     # Use all sensor data, last room states and last corridor 3 state as evidence
+    # Ignore the None reading of malfunctioned sensor
     evidence = {}
     for key in converted_sensor_data:
         if key in bayesian_network and converted_sensor_data[key] is not None:
