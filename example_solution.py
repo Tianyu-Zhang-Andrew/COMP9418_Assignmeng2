@@ -36,11 +36,19 @@ import pickle
 import json
 
 from DataProcessing import initialize_state
+from Room10Model import get_room_10_model
 from Room1And2And7And8Model import get_room_1_room_2_room_7_room_8_model
-
+from Room3Model import get_room_3_model
+from Room4And5And6Model import get_room_4_room_5_room_6_model
+from Room9Model import get_room_9_model
 
 state = initialize_state()
-join_tree1278, bayesian_network_graph1278 = get_room_1_room_2_room_7_room_8_model("data1.csv")
+training_file = "data1.csv"
+join_tree1278, bayesian_network_graph1278 = get_room_1_room_2_room_7_room_8_model(training_file)
+join_tree3, bayesian_network_graph3 = get_room_3_model(training_file)
+join_tree456, bayesian_network_graph456 = get_room_4_room_5_room_6_model(training_file)
+join_tree9, bayesian_network_graph9 = get_room_9_model(training_file)
+join_tree10, bayesian_network_graph10 = get_room_10_model(training_file)
 
 
 def convert_sensor_data(sensor_data):
@@ -100,7 +108,11 @@ def decide_action(prob_factor, sensor_data, room_num):
 
     probs = [prob_factor['0'], prob_factor['1'], prob_factor['>1']]
 
-    coef = {'r1': 2864/1938, 'r2': 4025/777, 'r7': 4401/401, 'r8': 1, 'c3': 3989/813}
+    # coef = {'r1': 2864/1938, 'r2': 4025/777, 'r3': 1, 'r4': 2654/2148, 'r5': 1, 'r6': 3221/1581, 'r7': 4401/401,
+    #         'r8': 1, 'r9': 1, 'r10': 4353/449, 'c3': 3989/813}
+
+    coef = {'r1': 1, 'r2': 1, 'r3': 1, 'r4': 1, 'r5': 1, 'r6': 1, 'r7': 4401/401,
+            'r8': 1, 'r9': 1, 'r10': 1, 'c3': 1}
 
     if prob_factor['0'] > 4 * coef[room_num] * (prob_factor['1'] + prob_factor['>1']):
         return 'off', max(probs), '0'
@@ -176,9 +188,100 @@ def get_room_1278_actions(converted_sensor_data):
     return {'lights1': action1, 'lights2': action2, 'lights7': action7, 'lights8': action8}
 
 
+def get_room_3_actions(converted_sensor_data):
+    global state
+
+    evidence = generate_evidence(converted_sensor_data, bayesian_network_graph3)
+
+    join_tree3.evidence(**evidence)
+    join_tree3.getMessages()
+
+    action3, prob3, current_state3 = decide_action(join_tree3.queryCluster('1', ('R3_t',)), converted_sensor_data, 'r3')
+
+    # Update the state of each room
+    state["R3_t-1"] = current_state3
+
+    join_tree3.reset()
+
+    return {'lights3': action3}
+
+
+def get_room_456_actions(converted_sensor_data):
+    global state
+
+    evidence = generate_evidence(converted_sensor_data, bayesian_network_graph456)
+
+    join_tree456.evidence(**evidence)
+    join_tree456.getMessages()
+
+    action4, prob4, current_state4 = decide_action(join_tree456.queryCluster('2', ('R4_t',)), converted_sensor_data,
+                                                   'r4')
+    action5, prob5, current_state5 = decide_action(join_tree456.queryCluster('6', ('R5_t',)), converted_sensor_data,
+                                                   'r5')
+    action6, prob6, current_state6 = decide_action(join_tree456.queryCluster('8', ('R6_t',)), converted_sensor_data,
+                                                   'r6')
+
+    # Update the state of each room
+    state["R4_t-1"] = current_state4
+    state["R5_t-1"] = current_state5
+    state["R6_t-1"] = current_state6
+
+    join_tree456.reset()
+
+    return {'lights4': action4, 'lights5': action5, 'lights6': action6}
+
+
+def get_room_9_actions(converted_sensor_data):
+    global state
+
+    evidence = generate_evidence(converted_sensor_data, bayesian_network_graph9)
+
+    join_tree9.evidence(**evidence)
+    join_tree9.getMessages()
+
+    action9, prob9, current_state9 = decide_action(join_tree9.queryCluster('1', ('R9_t',)), converted_sensor_data, 'r9')
+
+    # Update the state of each room
+    state["R9_t-1"] = current_state9
+
+    join_tree9.reset()
+
+    return {'lights9': action9}
+
+
+def get_room_10_actions(converted_sensor_data):
+    global state
+
+    evidence = generate_evidence(converted_sensor_data, bayesian_network_graph10)
+
+    join_tree10.evidence(**evidence)
+    join_tree10.getMessages()
+
+    action10, prob10, current_state10 = decide_action(join_tree10.queryCluster('1', ('R10_t',)), converted_sensor_data,
+                                                      'r10')
+
+    # Update the state of each room
+    state["R10_t-1"] = current_state10
+
+    join_tree10.reset()
+
+    return {'lights10': action10}
+
+
 def get_action(sensor_data):
     converted_sensor_data = convert_sensor_data(sensor_data)
-    actions_dict = get_room_1278_actions(converted_sensor_data)
+    actions_dict1278 = get_room_1278_actions(converted_sensor_data)
+    actions_dict3 = get_room_3_actions(converted_sensor_data)
+    actions_dict456 = get_room_456_actions(converted_sensor_data)
+    actions_dict9 = get_room_9_actions(converted_sensor_data)
+    actions_dict10 = get_room_10_actions(converted_sensor_data)
+
+    actions_dict = {}
+    actions_dict.update(actions_dict1278)
+    actions_dict.update(actions_dict3)
+    actions_dict.update(actions_dict456)
+    actions_dict.update(actions_dict9)
+    actions_dict.update(actions_dict10)
 
     return actions_dict
 

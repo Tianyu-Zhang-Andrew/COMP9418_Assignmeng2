@@ -69,4 +69,4 @@ def model_test(room_nums, file_name):
         print()
 
 
-model_test([1, 2, 7, 8], "data2.csv")
+model_test([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "data2.csv")
