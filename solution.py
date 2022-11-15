@@ -43,7 +43,7 @@ from Room4And5And6Model import get_room_4_room_5_room_6_model
 from Room9Model import get_room_9_model
 
 state = initialize_state()
-training_file = "data1.csv"
+training_file = "Combine.csv"
 join_tree1278, bayesian_network_graph1278 = get_room_1_room_2_room_7_room_8_model(training_file)
 join_tree3, bayesian_network_graph3 = get_room_3_model(training_file)
 join_tree456, bayesian_network_graph456 = get_room_4_room_5_room_6_model(training_file)
@@ -96,15 +96,16 @@ def convert_sensor_data(sensor_data):
 
 
 def decide_action(prob_factor, sensor_data, room_num):
-    for name in ["robot1", "robot2"]:
-        if sensor_data[name][0] != "outside" and room_num == sensor_data[name][0]:
 
-            if sensor_data[name][1] == 0:
-                return 'off', 1, '0'
-            elif sensor_data[name][1] == 1:
-                return 'on', 1, '1'
-            else:
-                return 'on', 1, '>1'
+    for name in ["robot1", "robot2"]:
+        if sensor_data[name] is not None:
+            if eval(sensor_data[name])[0] != "outside" and room_num == eval(sensor_data[name])[0]:
+                if eval(sensor_data[name])[1] == 0:
+                    return 'off', 1, '0'
+                elif eval(sensor_data[name])[1] == 1:
+                    return 'on', 1, '1'
+                else:
+                    return 'on', 1, '>1'
 
     probs = [prob_factor['0'], prob_factor['1'], prob_factor['>1']]
 
@@ -268,7 +269,25 @@ def get_room_10_actions(converted_sensor_data):
     return {'lights10': action10}
 
 
+def change_camera_name_format(sensor_data):
+    changed_sensor_data_dict = {}
+
+    name_replace_dict = {}
+    for i in range(1, 5):
+        name_replace_dict["Camera" + str(i)] = "Camera_sensor" + str(i)
+
+    for key in sensor_data.keys():
+        if key in name_replace_dict.keys():
+            new_key = name_replace_dict[key]
+            changed_sensor_data_dict[new_key] = sensor_data[key]
+        else:
+            changed_sensor_data_dict[key] = sensor_data[key]
+
+    return changed_sensor_data_dict
+
+
 def get_action(sensor_data):
+    sensor_data = change_camera_name_format(sensor_data)
     converted_sensor_data = convert_sensor_data(sensor_data)
     actions_dict1278 = get_room_1278_actions(converted_sensor_data)
     actions_dict3 = get_room_3_actions(converted_sensor_data)

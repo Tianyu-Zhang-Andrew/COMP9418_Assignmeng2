@@ -1,6 +1,6 @@
 import csv
 
-from example_solution import get_action
+from solution import get_action
 
 
 def convert_file_row_to_sensor_data(data_row):
@@ -19,7 +19,7 @@ def convert_file_row_to_sensor_data(data_row):
     # Robot data
     for i in range(1, 3):
         name = "robot" + str(i)
-        sensor_data[name] = eval(data_row[i + 14])
+        sensor_data[name] = data_row[i + 14]
 
     # Door sensor data
     for i in range(1, 12):
@@ -40,6 +40,7 @@ def model_test(room_nums, file_name):
     for num in room_nums:
         counts[num] = {'non_empty_count': 0, 'false_off_count': 0, 'empty_count': 0, 'false_on_count': 0}
 
+    cost = 0
     num = 0
     for row in reader:
         if num > 0:
@@ -60,13 +61,20 @@ def model_test(room_nums, file_name):
                     if action == "off":
                         counts[num]['false_off_count'] += 1
 
+                if action == "on":
+                    cost += 1
+                else:
+                    cost += 4 * int(row[28 + num])
+
         num += 1
 
-    for num in room_nums:
-        print('Room', num, ':')
-        print("Empty room:", counts[num]['empty_count'], ", Light on:", counts[num]['false_on_count'])
-        print("Non empty room:", counts[num]['non_empty_count'], ", Light off:", counts[num]['false_off_count'])
-        print()
+    # for num in room_nums:
+    #     print('Room', num, ':')
+    #     print("Empty room:", counts[num]['empty_count'], ", Light on:", counts[num]['false_on_count'])
+    #     print("Non empty room:", counts[num]['non_empty_count'], ", Light off:", counts[num]['false_off_count'])
+    #     print()
+
+    print("Cost:", cost)
 
 
-model_test([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "data2.csv")
+model_test([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "data1.csv")

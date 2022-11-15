@@ -31,7 +31,7 @@ import ast
 
 
 # import the function written by the student
-from example_solution import get_action
+from solution import get_action
 
 # simulator code
 class Person:    
@@ -131,19 +131,19 @@ class SmartBuildingSimulatorExample:
             for key in actions_dict:
                 self.lights[key] # test that action exists
                 self.lights[key] = actions_dict[key]
-                
+
+        # calculate cost
+        self.cost += self.cost_of_prev_timestep(self.current_electricity_price)
+
         # get data for current timestep (this example test uses saved data instead of randomly simulated data)
         current_data = self.data.iloc[self.curr_step]
+
         # move people 
         for room in self.room_occupancy:
             self.room_occupancy[room] = current_data.loc[room]
 
         # increment time
         self.current_time = (datetime.datetime.combine(datetime.date.today(), self.current_time) + self.time_step).time()
-
-        # calculate cost
-        self.cost += self.cost_of_prev_timestep(self.current_electricity_price)
-       
 
         # work out sensor data
         sensor_data = {}
@@ -159,8 +159,8 @@ class SmartBuildingSimulatorExample:
 
         # To make sure your code can handle this case,
         # set one random sensor to None
-        broken_sensor = np.random.choice(list(sensor_data.keys())) 
-        sensor_data[broken_sensor] = None
+        # broken_sensor = np.random.choice(list(sensor_data.keys()))
+        # sensor_data[broken_sensor] = None
 
         sensor_data['time'] = self.current_time 
 
@@ -181,7 +181,9 @@ class SmartBuildingSimulatorExample:
                 cost += self.productivity_cost*self.room_occupancy[room_num]
             else:
                 raise Exception("Invalid light state")
+
         return cost
+
 
 simulator = SmartBuildingSimulatorExample()
 
